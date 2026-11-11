@@ -1,0 +1,2813 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Entropy — AI Coding Agent</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #101114;
+            --panel: #191a1f;
+            --panel-light: #202127;
+            --border: #33343d;
+            --text: #f2f2f5;
+            --muted: #a1a1ad;
+            --accent: #c4b5fd;
+            --success: #86efac;
+            --danger: #fca5a5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family: Inter, Arial, sans-serif;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .topbar {
+            min-height: 66px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .sidebar-toggle-button {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-light);
+            color: var(--text);
+            font-size: 20px;
+        }
+
+        .sidebar-toggle-button:hover {
+            border-color: var(--accent);
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: #302750;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .logout-button {
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-light);
+            color: var(--text);
+        }
+
+        .logout-button:hover {
+            border-color: var(--accent);
+        }
+
+       .app-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 36%) minmax(0, 64%);
+    min-height: calc(100vh - 66px);
+    transition: grid-template-columns 0.2s ease;
+}
+
+        .app-layout.sidebar-closed {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .app-layout.sidebar-closed .sidebar {
+            display: none;
+        }
+
+        .sidebar {
+            min-width: 0;
+            padding: 20px;
+            border-right: 1px solid var(--border);
+            background: #141519;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .workspace-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .download-button {
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-light);
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        .download-button:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .explorer-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--panel);
+        }
+
+        .explorer-tab {
+            flex: 1;
+            padding: 9px 10px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .explorer-tab.active {
+            border-color: #514477;
+            background: #282239;
+            color: var(--accent);
+        }
+
+        .file-item {
+            width: 100%;
+            padding: 11px;
+            overflow-wrap: anywhere;
+            text-align: left;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: transparent;
+            color: #d4d4dc;
+            font-size: 13px;
+        }
+
+        .file-item:hover {
+            background: var(--panel-light);
+        }
+
+        .file-item.active {
+            border-color: #514477;
+            background: #282239;
+            color: var(--accent);
+        }
+
+        .github-panel { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .github-actions { display: flex; gap: 8px; margin: 12px 0; }
+        .secondary-button { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-light); color: var(--text); font-size: 12px; }
+        .secondary-button:hover { border-color: var(--accent); }
+        .github-status { margin: 8px 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+        .github-repo-list { display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto; }
+        .github-repo { width: 100%; padding: 10px; text-align: left; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #d4d4dc; overflow-wrap: anywhere; }
+        .github-repo:hover { background: var(--panel-light); }
+        .github-repo.active { border-color: #514477; background: #282239; color: var(--accent); }
+        .github-repo-name { display: block; font-size: 13px; font-weight: 600; }
+        .github-repo-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+        .github-selection { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #111216; overflow-wrap: anywhere; }
+        .github-selection a { display: inline-block; margin-top: 8px; color: var(--accent); font-size: 12px; }
+        .github-tree { margin-top: 12px; max-height: 360px; overflow: auto; border-top: 1px solid var(--border); padding-top: 8px; }
+        .github-tree-item { padding-top: 5px; padding-bottom: 5px; overflow-wrap: anywhere; color: var(--text); font-size: 12px; }
+        .github-tree-item:hover { color: var(--accent); }
+
+        .empty-state {
+            padding: 18px 10px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .main-panel {
+            min-width: 0;
+            padding: 24px;
+        }
+
+        .task-panel,
+        .output-panel,
+        .file-viewer {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--panel);
+        }
+
+        .task-panel {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        .description {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        #task-input {
+            width: 100%;
+            min-height: 115px;
+            resize: vertical;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+            background: #111216;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        #task-input:focus {
+            border-color: #8270c4;
+        }
+
+        .task-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .primary-button {
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 8px;
+            background: #d8ccff;
+            color: #181324;
+            font-weight: 700;
+        }
+
+        .primary-button:hover:not(:disabled) {
+            background: #e5ddff;
+        }
+
+        .status {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .output-panel,
+        .file-viewer {
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            background: #1c1d23;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .panel-content {
+            padding: 18px;
+        }
+
+        .activity-log {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #d5d5df;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .activity-dot {
+            flex-shrink: 0;
+            width: 7px;
+            height: 7px;
+            margin-top: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .final-answer {
+            min-height: 55px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .final-answer.is-writing::after {
+            content: "";
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            background: currentColor;
+            animation: answer-cursor 0.8s steps(2, start) infinite;
+        }
+
+        @keyframes answer-cursor {
+            to {
+                visibility: hidden;
+            }
+        }
+
+        #preview-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            border: 1px solid #315c43;
+            border-radius: 8px;
+            background: #17251d;
+            color: var(--success);
+        }
+
+        #preview-link {
+            color: #c4f5d4;
+            font-weight: 600;
+        }
+
+        .file-content {
+            min-height: 80px;
+            max-height: 520px;
+            overflow: auto;
+            margin: 0;
+            padding: 18px;
+            background: #111216;
+            color: #d8d8e2;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        .success-text {
+            color: var(--success);
+        }
+
+        .error-text {
+            color: var(--danger);
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 760px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .main-panel {
+                padding: 14px;
+            }
+
+            .topbar {
+                padding: 12px 15px;
+            }
+
+            .task-panel {
+                padding: 15px;
+            }
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .setting-card {
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #141519;
+        }
+
+        .setting-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .setting-heading label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .setting-value {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .setting-description {
+            min-height: 36px;
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .setting-slider {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .setting-labels {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .github-picker {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .github-picker button,
+        .github-dialog-header button {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-light);
+            color: var(--text);
+        }
+
+        .github-picker span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .github-dialog {
+            width: min(560px, calc(100% - 28px));
+            max-height: 80vh;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel);
+            color: var(--text);
+        }
+
+        .github-dialog::backdrop {
+            background: rgb(0 0 0 / 65%);
+        }
+
+        .github-dialog-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .github-dialog-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .github-dialog-header p {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        #github-repo-search {
+            width: 100%;
+            margin: 12px 0;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .github-dialog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 48vh;
+            overflow-y: auto;
+        }
+
+        .github-dialog-item {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-light);
+            color: var(--text);
+            text-align: left;
+        }
+
+        .github-dialog-item:hover {
+            border-color: var(--accent);
+        }
+
+        .github-dialog-item small {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+        }
+        
+.github-publish-panel {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    overflow: hidden;
+}
+
+.github-publish-content {
+    padding: 18px;
+}
+
+.github-publish-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.github-publish-status {
+    margin: 12px 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.github-review-file {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.github-review-file summary {
+    padding: 12px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    background: var(--panel-light);
+    font-size: 13px;
+}
+
+.github-review-file pre {
+    margin: 0;
+    padding: 14px;
+    overflow: auto;
+    max-height: 300px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: #111216;
+    color: var(--text);
+    font: 12px/1.6 Consolas, monospace;
+}
+
+.github-commit-message {
+    width: 100%;
+    margin-top: 14px;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #111216;
+    color: var(--text);
+}
+
+.github-confirm-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 16px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.github-confirm-row input {
+    margin-top: 4px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+}
+
+
+        @media (max-width: 600px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chat-history {
+            margin-bottom: 24px;
+        }
+
+        .chat-history-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-projects-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .toggle-projects-button h2 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        #projects-toggle-icon {
+            display: inline-block;
+            width: 16px;
+            color: var(--muted);
+            transition: transform 0.15s ease;
+        }
+
+        .toggle-projects-button[aria-expanded="false"] #projects-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        #chat-list[hidden] {
+            display: none;
+        }
+
+        #new-chat-button {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color, #444);
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--panel-light);
+            color: var(--text);
+        }
+
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chat-list-item {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            text-align: left;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            overflow-wrap: anywhere;
+            color: var(--text);
+        }
+
+        .chat-list-item:hover {
+            background: var(--surface-hover, rgba(128, 128, 128, 0.12));
+        }
+
+        .chat-list-item.active {
+            background: var(--surface-active, rgba(128, 128, 128, 0.2));
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <button
+                type="button"
+                id="sidebar-toggle-button"
+                class="sidebar-toggle-button"
+                aria-label="Close sidebar"
+                title="Close sidebar"
+                aria-expanded="true"
+                aria-controls="app-sidebar"
+            >
+                ☰
+            </button>
+
+            <div class="brand-icon">E</div>
+
+            <div>
+                <div class="brand-name">Entropy</div>
+                <div class="brand-subtitle">AI Coding Agent</div>
+            </div>
+        </div>
+
+        <button
+            type="button"
+            id="logout-button"
+            class="logout-button"
+        >
+            Logout
+        </button>
+    </header>
+
+    <div class="app-layout">
+        <aside class="sidebar" id="app-sidebar">
+            <div class="chat-history">
+                <div class="chat-history-heading">
+                    <button
+                        type="button"
+                        id="toggle-projects-button"
+                        class="toggle-projects-button"
+                        aria-expanded="true"
+                        aria-controls="chat-list"
+                        title="Collapse projects"
+                    >
+                        <span id="projects-toggle-icon" aria-hidden="true">▾</span>
+                        <h2>Projects</h2>
+                    </button>
+
+                    <button type="button" id="new-chat-button">
+                        + New Project
+                    </button>
+                </div>
+
+                <div id="chat-list" class="chat-list">
+                    <div class="empty-state">Loading projects...</div>
+                </div>
+            </div>
+
+            <div class="section-heading">
+                <h2 id="explorer-heading">Workspace Files</h2>
+                <div class="workspace-actions">
+                    <span id="file-count" class="muted">0 files</span>
+                    <button
+                        type="button"
+                        id="download-project-button"
+                        class="download-button"
+                        disabled
+                    >
+                        Download Project
+                    </button>
+                </div>
+            </div>
+
+            <div class="explorer-tabs">
+                <button
+                    type="button"
+                    id="workspace-tab"
+                    class="explorer-tab active"
+                    aria-pressed="true"
+                >
+                    Workspace
+                </button>
+
+                <button
+                    type="button"
+                    id="github-tab"
+                    class="explorer-tab"
+                    aria-pressed="false"
+                >
+                    GitHub
+                </button>
+            </div>
+
+            <div id="file-list" class="file-list">
+                <div class="empty-state">Loading workspace files...</div>
+            </div>
+
+        </aside>
+
+        <main class="main-panel">
+            <section class="task-panel">
+                <h1>Build something with Entropy</h1>
+
+                <p class="description">
+                    Describe a coding task. Entropy will use its available
+                    MCP tools to work on your project and report its progress.
+                </p>
+
+                <form id="task-form">
+                    <textarea
+                        id="task-input"
+                        placeholder="Example: Create a Python FastAPI application with a health endpoint..."
+                        required
+                    ></textarea>
+
+                    <div class="github-picker">
+                        <button type="button" id="github-picker-button">
+                            Connect / Select GitHub Repository
+                        </button>
+                        <span id="github-selected-repo">
+                            No repository selected
+                        </span>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <div class="setting-heading">
+                                <label for="effort-input">Effort</label>
+                                <span id="effort-value" class="setting-value">
+                                    Medium
+                                </span>
+                            </div>
+
+                            <p class="setting-description">
+                                Choose how much planning, iteration and
+                                verification Entropy should invest.
+                            </p>
+
+                            <input
+                                type="range"
+                                id="effort-input"
+                                class="setting-slider"
+                                min="0"
+                                max="2"
+                                step="1"
+                                value="1"
+                            >
+
+                            <div class="setting-labels">
+                                <span>Low</span>
+                                <span>Medium</span>
+                                <span>Max</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-card">
+                            <div class="setting-heading">
+                                <label for="coding-level-input">
+                                    Coding level
+                                </label>
+                                <span id="coding-level-value"
+                                      class="setting-value">
+                                    College
+                                </span>
+                            </div>
+
+                            <p class="setting-description">
+                                Choose the expected solution complexity
+                                and engineering depth.
+                            </p>
+
+                            <input
+                                type="range"
+                                id="coding-level-input"
+                                class="setting-slider"
+                                min="0"
+                                max="3"
+                                step="1"
+                                value="2"
+                            >
+
+                            <div class="setting-labels">
+                                <span>Basic</span>
+                                <span>Medium</span>
+                                <span>College</span>
+                                <span>Advanced</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-actions">
+                        <span id="status" class="status">
+                            Ready for your task
+                        </span>
+
+                        <button
+                            type="submit"
+                            id="run-button"
+                            class="primary-button"
+                        >
+                            Run task
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="output-panel">
+                <div class="panel-heading">
+                    <h2>Agent Activity</h2>
+                    <span class="muted">Live progress</span>
+                </div>
+
+                <div class="panel-content">
+                    <div id="activity-log" class="activity-log">
+                        <div class="empty-state">
+                            Your agent's progress will appear here.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="github-publish-panel">
+                <div class="panel-heading">
+                    <h2>Publish to GitHub</h2>
+                    <span class="muted">Review before publishing</span>
+                </div>
+
+                <div class="github-publish-content">
+                    <p class="description">
+                        Review your project's file changes before creating a
+                        commit. Selecting a repository never publishes files.
+                    </p>
+
+                    <div id="publish-destination" class="github-publish-status">
+                        Select a GitHub repository above to get started.
+                    </div>
+
+                    <div class="github-publish-actions">
+                        <button
+                            type="button"
+                            id="publish-preview-button"
+                            class="secondary-button"
+                        >
+                            Generate Review
+                        </button>
+                    </div>
+
+                    <div
+                        id="publish-review-status"
+                        class="github-publish-status"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        No review generated yet.
+                    </div>
+
+                    <div id="publish-review-files"></div>
+
+                    <div id="publish-confirmation" hidden>
+                        <label for="publish-commit-message">
+                            Commit message
+                        </label>
+
+                        <input
+                            id="publish-commit-message"
+                            class="github-commit-message"
+                            type="text"
+                            maxlength="200"
+                            value="Publish changes from Entropy"
+                        >
+
+                        <label class="github-confirm-row">
+                            <input
+                                type="checkbox"
+                                id="publish-confirm-checkbox"
+                            >
+                            <span>
+                                I have reviewed these files and explicitly
+                                approve publishing these changes to the
+                                selected GitHub repository.
+                            </span>
+                        </label>
+
+                        <div class="github-publish-actions">
+                            <button
+                                type="button"
+                                id="publish-confirm-button"
+                                class="primary-button"
+                                disabled
+                            >
+                                Publish to GitHub
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="output-panel">
+                <div class="panel-heading">
+                    <h2>Final Answer</h2>
+                </div>
+
+                <div class="panel-content">
+                    <div id="preview-container" hidden>
+                        <strong>Project is ready!</strong>
+                        <a id="preview-link" href="#" target="_blank" rel="noopener noreferrer">
+                            Open Preview
+                        </a>
+                    </div>
+
+                    <div id="final-answer" class="final-answer">
+                        No task completed yet.
+                    </div>
+                </div>
+            </section>
+
+            <section class="file-viewer">
+                <div class="panel-heading">
+                    <h2 id="file-title">File Viewer</h2>
+                    <span class="muted">Read-only preview</span>
+                </div>
+
+                <pre id="file-contents" class="file-content">Select a file from the workspace explorer to view its contents.</pre>
+            </section>
+        </main>
+    </div>
+
+    <dialog id="github-dialog" class="github-dialog">
+        <div class="github-dialog-header">
+            <div>
+                <h2>Select a GitHub repository</h2>
+                <p>Choose a repository to use with your task.</p>
+            </div>
+            <button type="button" id="github-dialog-close">Close</button>
+        </div>
+
+        <input
+            type="search"
+            id="github-repo-search"
+            placeholder="Search loaded repositories..."
+            aria-label="Search loaded repositories"
+        >
+
+        <div id="github-dialog-status" role="status">
+            Loading repositories...
+        </div>
+
+        <div id="github-dialog-list" class="github-dialog-list"></div>
+        <div id="github-dialog-sentinel" aria-hidden="true"></div>
+    </dialog>
+
+    <script>
+        const taskForm = document.getElementById("task-form");
+        const taskInput = document.getElementById("task-input");
+        const runButton = document.getElementById("run-button");
+        const logoutButton = document.getElementById("logout-button");
+        const appLayout = document.querySelector(".app-layout");
+        const sidebarToggleButton = document.getElementById(
+            "sidebar-toggle-button"
+        );
+
+        sidebarToggleButton.addEventListener("click", () => {
+            const isClosed = appLayout.classList.toggle("sidebar-closed");
+
+            sidebarToggleButton.setAttribute(
+                "aria-expanded",
+                String(!isClosed)
+            );
+
+            sidebarToggleButton.setAttribute(
+                "aria-label",
+                isClosed ? "Open sidebar" : "Close sidebar"
+            );
+
+            sidebarToggleButton.title = isClosed
+                ? "Open sidebar"
+                : "Close sidebar";
+        });
+
+        const statusBox = document.getElementById("status");
+        const activityLog = document.getElementById("activity-log");
+        const finalAnswer = document.getElementById("final-answer");
+        const previewContainer = document.getElementById("preview-container");
+        const previewLink = document.getElementById("preview-link");
+        const previewStorageKey = "entropy-preview";
+        const chatList = document.getElementById("chat-list");
+        const newChatButton = document.getElementById("new-chat-button");
+        const toggleProjectsButton = document.getElementById(
+            "toggle-projects-button"
+        );
+
+        toggleProjectsButton.addEventListener("click", () => {
+            const isExpanded =
+                toggleProjectsButton.getAttribute("aria-expanded") === "true";
+
+            toggleProjectsButton.setAttribute(
+                "aria-expanded",
+                String(!isExpanded)
+            );
+
+            toggleProjectsButton.title = isExpanded
+                ? "Expand projects"
+                : "Collapse projects";
+
+            chatList.hidden = isExpanded;
+        });
+
+        let activeChatId = null;
+        let activeProjectId = null;
+        let activeProjectMemory = "";
+        let activeProjectNeedsTitle = false;
+        let currentTask = "";
+        let chatLoading = false;
+        let filesLoading = false;
+
+        const fileList = document.getElementById("file-list");
+        const fileCount = document.getElementById("file-count");
+        const downloadProjectButton = document.getElementById("download-project-button");
+        const explorerHeading = document.getElementById("explorer-heading");
+        const workspaceTab = document.getElementById("workspace-tab");
+        const githubTab = document.getElementById("github-tab");
+
+        let explorerMode = "workspace";
+
+        const fileTitle = document.getElementById("file-title");
+        const fileContents = document.getElementById("file-contents");
+
+        const githubStatus = document.getElementById("github-status");
+        const githubRepoCount = document.getElementById("github-repo-count");
+        const githubRepoList = document.getElementById("github-repo-list");
+        const githubSelection = document.getElementById("github-selection");
+        const githubSelectionName = document.getElementById("github-selection-name");
+        const githubSelectionDescription = document.getElementById("github-selection-description");
+        const githubTree = document.getElementById("github-tree");
+        const githubOpenLink = document.getElementById("github-open-link");
+
+        const effortInput = document.getElementById("effort-input");
+        const effortValue = document.getElementById("effort-value");
+
+        const codingLevelInput =
+            document.getElementById("coding-level-input");
+        const codingLevelValue =
+            document.getElementById("coding-level-value");
+
+        const effortLabels = ["Low", "Medium", "Max"];
+        const codingLevelLabels = [
+            "Basic",
+            "Medium",
+            "College",
+            "Advanced"
+        ];
+
+        effortInput.addEventListener("input", () => {
+            effortValue.textContent =
+                effortLabels[Number(effortInput.value)];
+        });
+
+        codingLevelInput.addEventListener("input", () => {
+            codingLevelValue.textContent =
+                codingLevelLabels[Number(codingLevelInput.value)];
+        });
+
+        let activeFilePath = null;
+        let taskRunning = false;
+
+        downloadProjectButton.addEventListener("click", async () => {
+            if (!activeProjectId) {
+                setStatus("Select a project before downloading its files.", true);
+                return;
+            }
+
+            try {
+                downloadProjectButton.disabled = true;
+                const response = await fetch(
+                    `/api/projects/${encodeURIComponent(activeProjectId)}/download`,
+                    { credentials: "same-origin" }
+                );
+
+                if (await handleUnauthorized(response)) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    const payload = await response.json().catch(() => ({}));
+                    throw new Error(payload.detail || "Could not download the project files.");
+                }
+
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = objectUrl;
+                anchor.download = `project-${activeProjectId.slice(0, 12)}.zip`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                URL.revokeObjectURL(objectUrl);
+                setStatus("Project archive downloaded successfully.");
+            } catch (error) {
+                setStatus(error.message, true);
+            } finally {
+                downloadProjectButton.disabled = false;
+            }
+        });
+
+        function showPreview(url, port) {
+            const previewUrl = new URL(url, window.location.origin);
+
+            if (!["http:", "https:"].includes(previewUrl.protocol)) {
+                throw new Error("Preview URL must use HTTP or HTTPS.");
+            }
+
+            previewLink.href = previewUrl.href;
+            previewLink.textContent = port
+                ? `Open Preview (${port})`
+                : "Open Preview";
+            previewContainer.hidden = false;
+        }
+
+        function restorePreview() {
+            try {
+                const savedPreview = localStorage.getItem(previewStorageKey);
+
+                if (!savedPreview) {
+                    return;
+                }
+
+                const preview = JSON.parse(savedPreview);
+                showPreview(preview.url, preview.port);
+            } catch (error) {
+                try {
+                    localStorage.removeItem(previewStorageKey);
+                } catch (storageError) {
+                    console.warn("Could not clear the saved preview link.", storageError);
+                }
+                console.warn("Could not restore the saved preview link.", error);
+            }
+        }
+
+        function generateProjectTitle(task) {
+            const cleaned = task
+                .replace(/\s+/g, " ")
+                .trim()
+                .replace(/[.!?]+$/, "");
+
+            if (!cleaned) {
+                return "Untitled Project";
+            }
+
+            const prefixes = [
+                /^please\s+/i,
+                /^can you\s+/i,
+                /^could you\s+/i,
+                /^build\s+(me\s+)?/i,
+                /^create\s+(me\s+)?/i,
+                /^develop\s+(me\s+)?/i,
+                /^make\s+(me\s+)?/i,
+                /^help me\s+/i,
+                /^i want to\s+/i,
+                /^i need you to\s+/i
+            ];
+
+            let title = cleaned;
+
+            for (const prefix of prefixes) {
+                title = title.replace(prefix, "");
+            }
+
+            title = title.trim();
+
+            if (!title) {
+                title = cleaned;
+            }
+
+            title = title.charAt(0).toUpperCase() + title.slice(1);
+
+            if (title.length > 55) {
+                title = `${title.slice(0, 52).trimEnd()}...`;
+            }
+
+            return title;
+        }
+
+        function setStatus(message, isError = false) {
+            statusBox.textContent = message;
+            statusBox.classList.toggle("error-text", isError);
+            statusBox.classList.toggle("success-text", !isError);
+        }
+
+        function addActivity(message, type = "activity") {
+            const emptyState = activityLog.querySelector(".empty-state");
+
+            if (emptyState) {
+                activityLog.replaceChildren();
+            }
+
+            const item = document.createElement("div");
+            item.className = "activity-item";
+
+            const dot = document.createElement("span");
+            dot.className = "activity-dot";
+
+            const text = document.createElement("span");
+            text.textContent = message;
+
+            if (type === "error") {
+                text.classList.add("error-text");
+            } else if (type === "success") {
+                text.classList.add("success-text");
+            }
+
+            item.append(dot, text);
+            activityLog.appendChild(item);
+
+            activityLog.scrollTop = activityLog.scrollHeight;
+        }
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options,
+                headers: {
+                    ...(options.headers || {})
+                }
+            });
+
+            if (await handleUnauthorized(response)) {
+                throw new Error("Your session has expired. Please log in.");
+            }
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Request failed.");
+            }
+
+            return data;
+        }
+
+        async function loadChats() {
+            chatList.textContent = "Loading chats...";
+
+            try {
+                const data = await apiRequest("/api/chats");
+                chatList.replaceChildren();
+
+                const chats = Array.isArray(data.chats) ? data.chats : [];
+
+                if (chats.length === 0) {
+                    const empty = document.createElement("div");
+                    empty.className = "empty-state";
+                    empty.textContent = "No chats yet. Create your first chat.";
+                    chatList.appendChild(empty);
+                    return;
+                }
+
+                for (const chat of chats) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "chat-list-item";
+                    button.textContent = chat.title || "New Chat";
+                    button.title = chat.title || "New Chat";
+                    button.classList.toggle(
+                        "active",
+                        String(chat.id) === String(activeChatId)
+                    );
+
+                    button.addEventListener("click", () => {
+                        selectChat(chat.id);
+                    });
+
+                    chatList.appendChild(button);
+                }
+            } catch (error) {
+                chatList.textContent = `Could not load chats: ${error.message}`;
+            }
+        }
+
+        async function createNewChat() {
+            if (chatLoading || taskRunning) {
+                return;
+            }
+
+            chatLoading = true;
+            newChatButton.disabled = true;
+            setStatus("Creating a new chat...");
+
+            try {
+                const chatData = await apiRequest("/api/chats", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: "Untitled Project"
+                    })
+                });
+
+                const chat = chatData.chat;
+
+                if (!chat || !chat.id) {
+                    throw new Error("The server did not return a chat ID.");
+                }
+
+                const projectData = await apiRequest(
+                    `/api/chats/${encodeURIComponent(chat.id)}/projects`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            chat_id: chat.id,
+                            summary: null
+                        })
+                    }
+                );
+
+                const project = projectData.project;
+
+                if (!project || !project.id) {
+                    throw new Error("The server did not return a project ID.");
+                }
+
+                activeChatId = chat.id;
+                activeProjectId = project.id;
+                downloadProjectButton.disabled = !activeProjectId;
+                activeProjectMemory = "";
+                activeProjectNeedsTitle = true;
+
+                taskInput.value = "";
+                activityLog.replaceChildren();
+                finalAnswer.textContent = "Ready for your new project.";
+                previewContainer.hidden = true;
+
+                activeFilePath = null;
+                fileTitle.textContent = "File Viewer";
+                fileContents.textContent = "Select a file from the workspace explorer.";
+
+                await loadChats();
+                await resumeSelectedProject(project.id);
+
+                setStatus("New chat ready.");
+                taskInput.focus();
+            } catch (error) {
+                setStatus(error.message, true);
+                addActivity(error.message, "error");
+            } finally {
+                chatLoading = false;
+                newChatButton.disabled = false;
+            }
+        }
+
+        async function resumeSelectedProject(projectId) {
+            const data = await apiRequest(
+                `/api/projects/${encodeURIComponent(projectId)}/resume`,
+                {
+                    method: "POST"
+                }
+            );
+
+            activeProjectId = data.project.id;
+            downloadProjectButton.disabled = !activeProjectId;
+            activeProjectMemory = data.memory || "";
+
+            if (data.has_files) {
+                addActivity(
+                    `Resumed existing project (${data.file_count} files).`
+                );
+
+                if (data.has_memory) {
+                    addActivity("Project memory restored.");
+                }
+            } else {
+                addActivity(
+                    "Project workspace is empty. Ready for a new task."
+                );
+            }
+
+            activeFilePath = null;
+            fileTitle.textContent = "File Viewer";
+            fileContents.textContent = "Select a file from the workspace explorer.";
+
+            try {
+                localStorage.removeItem(previewStorageKey);
+            } catch (error) {
+                console.warn("Could not clear the previous preview link.", error);
+            }
+
+            previewContainer.hidden = true;
+
+            await loadFiles();
+
+            addActivity(
+                activeProjectMemory
+                    ? "Project memory restored."
+                    : "Workspace restored. No project memory exists yet."
+            );
+        }
+
+        async function selectChat(chatId) {
+            if (chatLoading || taskRunning) {
+                return;
+            }
+
+            activeProjectNeedsTitle = false;
+            chatLoading = true;
+            newChatButton.disabled = true;
+            setStatus("Opening previous chat...");
+
+            try {
+                const chatsData = await apiRequest("/api/chats");
+                const selectedChat = (chatsData.chats || []).find(
+                    chat => String(chat.id) === String(chatId)
+                );
+
+                activeProjectNeedsTitle = Boolean(
+                    selectedChat &&
+                    ["New Chat", "Untitled Project"].includes(selectedChat.title)
+                );
+
+                const data = await apiRequest(
+                    `/api/chats/${encodeURIComponent(chatId)}/projects`
+                );
+
+                const projects = Array.isArray(data.projects)
+                    ? data.projects
+                    : [];
+
+                if (projects.length === 0) {
+                    throw new Error(
+                        "This chat has no project yet. Create a new chat for now."
+                    );
+                }
+
+                const project = projects[projects.length - 1];
+
+                activeChatId = chatId;
+                activeProjectId = project.id;
+                downloadProjectButton.disabled = !activeProjectId;
+
+                taskInput.value = "";
+                activityLog.replaceChildren();
+                finalAnswer.textContent = "Resuming your project...";
+                await loadChats();
+
+                await resumeSelectedProject(project.id);
+
+                setStatus("Previous chat restored.");
+                taskInput.focus();
+            } catch (error) {
+                setStatus(error.message, true);
+                addActivity(error.message, "error");
+            } finally {
+                chatLoading = false;
+                newChatButton.disabled = false;
+            }
+        }
+
+        newChatButton.addEventListener("click", createNewChat);
+
+        async function handleUnauthorized(response) {
+            if (response.status === 401 || response.status === 403) {
+                window.location.assign("/login");
+                return true;
+            }
+
+            return false;
+        }
+
+        function setExplorerMode(mode) {
+            explorerMode = mode;
+
+            const isWorkspace = mode === "workspace";
+
+            workspaceTab.classList.toggle("active", isWorkspace);
+            workspaceTab.setAttribute("aria-pressed", String(isWorkspace));
+
+            githubTab.classList.toggle("active", !isWorkspace);
+            githubTab.setAttribute("aria-pressed", String(!isWorkspace));
+
+            if (isWorkspace) {
+                explorerHeading.textContent = "Workspace Files";
+                loadFiles();
+                return;
+            }
+
+            explorerHeading.textContent = "GitHub Destination";
+            fileList.replaceChildren();
+
+            if (!selectedGithubRepo) {
+                const message = document.createElement("div");
+                message.className = "empty-state";
+                message.textContent =
+                    "Connect GitHub and select a repository using the button beside your task.";
+                fileList.appendChild(message);
+                fileCount.textContent = "No repository";
+                return;
+            }
+
+            const repo = selectedGithubRepo;
+
+            const details = document.createElement("div");
+            details.className = "empty-state";
+
+            const name = document.createElement("strong");
+            name.textContent = repo.full_name;
+
+            const branch = document.createElement("p");
+            branch.textContent =
+                `Publishing destination branch: ${repo.default_branch || "unknown"}`;
+
+            const note = document.createElement("p");
+            note.textContent =
+                "Entropy will work in its local workspace. GitHub publishing will be added after verification.";
+
+            details.append(name, branch, note);
+            fileList.appendChild(details);
+            fileCount.textContent = "Destination selected";
+        }
+
+        workspaceTab.addEventListener("click", () => {
+            setExplorerMode("workspace");
+        });
+
+        githubTab.addEventListener("click", () => {
+            setExplorerMode("github");
+        });
+
+        async function loadFiles() {
+            if (filesLoading) {
+                return;
+            }
+
+            filesLoading = true;
+
+            try {
+                const filesUrl = activeProjectId
+                    ? `/api/files?project_id=${encodeURIComponent(activeProjectId)}`
+                    : "/api/files";
+
+                const response = await fetch(filesUrl, {
+                    credentials: "same-origin"
+                });
+
+                if (await handleUnauthorized(response)) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Unable to load workspace files.");
+                }
+
+                const data = await response.json();
+                const files = data.files || [];
+
+                fileList.replaceChildren();
+                fileCount.textContent =
+                    `${files.length} file${files.length === 1 ? "" : "s"}`;
+
+                if (files.length === 0) {
+                    const empty = document.createElement("div");
+                    empty.className = "empty-state";
+                    empty.textContent = "Workspace is empty.";
+                    fileList.appendChild(empty);
+
+                    activeFilePath = null;
+                    fileTitle.textContent = "File Viewer";
+                    fileContents.textContent =
+                        "Create a file with Entropy, or select a file to preview it.";
+
+                    return;
+                }
+
+                for (const file of files) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "file-item";
+                    button.textContent = `📄 ${file.path}`;
+                    button.title = file.path;
+
+                    if (file.path === activeFilePath) {
+                        button.classList.add("active");
+                    }
+
+                    button.addEventListener("click", () => {
+                        openFile(file.path);
+                    });
+
+                    fileList.appendChild(button);
+                }
+
+                if (
+                    activeFilePath &&
+                    files.some(file => file.path === activeFilePath)
+                ) {
+                    await openFile(activeFilePath);
+                } else if (!activeFilePath) {
+                    fileTitle.textContent = "File Viewer";
+                    fileContents.textContent =
+                        "Select a file from the workspace explorer to view its contents.";
+                }
+            } catch (error) {
+                fileList.replaceChildren();
+
+                const message = document.createElement("div");
+                message.className = "empty-state error-text";
+                message.textContent = error.message;
+
+                fileList.appendChild(message);
+            } finally {
+                filesLoading = false;
+            }
+        }
+
+        async function openFile(path) {
+            activeFilePath = path;
+            fileTitle.textContent = path;
+            fileContents.textContent = "Loading file...";
+
+            try {
+                const fileUrl = new URL("/api/file", window.location.origin);
+                fileUrl.searchParams.set("path", path);
+
+                if (activeProjectId) {
+                    fileUrl.searchParams.set("project_id", activeProjectId);
+                }
+
+                const response = await fetch(
+                    `${fileUrl.pathname}${fileUrl.search}`,
+                    { credentials: "same-origin" }
+                );
+
+                if (await handleUnauthorized(response)) {
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Unable to open file.");
+                }
+
+                fileContents.textContent = data.content;
+
+                document.querySelectorAll(".file-item").forEach(button => {
+                    button.classList.toggle(
+                        "active",
+                        button.title === path
+                    );
+                });
+            } catch (error) {
+                fileContents.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        let githubRepositories = [];
+        let selectedGithubRepositoryId = null;
+
+        function renderGithubRepositories() {
+            githubRepoList.replaceChildren();
+            if (githubRepositories.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "No repositories were returned.";
+                githubRepoList.appendChild(empty);
+                return;
+            }
+
+            for (const repo of githubRepositories) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "github-repo";
+                button.classList.toggle("active", repo.id === selectedGithubRepositoryId);
+                button.setAttribute("aria-pressed", String(repo.id === selectedGithubRepositoryId));
+
+                const name = document.createElement("span");
+                name.className = "github-repo-name";
+                name.textContent = repo.full_name;
+
+                const meta = document.createElement("span");
+                meta.className = "github-repo-meta";
+                meta.textContent = `${repo.private ? "Private" : "Public"} · ${repo.default_branch || "No default branch"}`;
+
+                button.append(name, meta);
+                button.addEventListener("click", () => {
+                    selectGithubRepository(repo.id);
+                });
+                githubRepoList.appendChild(button);
+            }
+        }
+
+        async function loadGithubTree(owner, repo) {
+            const url =
+                `/api/github/repos/${encodeURIComponent(owner)}` +
+                `/${encodeURIComponent(repo)}/tree`;
+
+            const response = await fetch(url, {
+                credentials: "same-origin"
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Failed to load repository files.");
+            }
+
+            return data;
+        }
+
+        async function openGithubFile(repo, path) {
+            fileTitle.textContent = `${repo.full_name} / ${path}`;
+            fileContents.textContent = "Loading GitHub file...";
+
+            try {
+                const [owner, name] = repo.full_name.split("/", 2);
+
+                const params = new URLSearchParams({
+                    path,
+                    branch: repo.default_branch || "main"
+                });
+
+                const url =
+                    `/api/github/repos/${encodeURIComponent(owner)}` +
+                    `/${encodeURIComponent(name)}/file?${params.toString()}`;
+
+                const response = await fetch(url, {
+                    credentials: "same-origin"
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (await handleUnauthorized(response)) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Unable to read GitHub file.");
+                }
+
+                fileContents.textContent = data.content;
+            } catch (error) {
+                fileContents.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function renderGithubTree(entries) {
+            githubTree.replaceChildren();
+
+            const sortedEntries = [...entries].sort((a, b) =>
+                a.path.localeCompare(b.path)
+            );
+
+            for (const entry of sortedEntries) {
+                const row = document.createElement("div");
+                row.className = "github-tree-item";
+
+                const depth = entry.path.split("/").length - 1;
+                row.style.paddingLeft = `${8 + depth * 14}px`;
+
+                const isFolder = entry.type === "tree";
+                row.textContent =
+                    `${isFolder ? "📁" : "📄"} ${entry.path.split("/").pop()}`;
+                row.title = entry.path;
+
+                if (!isFolder) {
+                    row.style.cursor = "pointer";
+                    row.addEventListener("click", () => {
+                        const repo = githubRepositories.find(
+                            item => item.id === selectedGithubRepositoryId
+                        );
+
+                        if (repo) {
+                            openGithubFile(repo, entry.path);
+                            githubStatus.textContent = `Opened ${entry.path}`;
+                        }
+                    });
+                }
+
+                githubTree.appendChild(row);
+            }
+
+            if (sortedEntries.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "This repository has no files.";
+                githubTree.appendChild(empty);
+            }
+        }
+
+        async function selectGithubRepository(repositoryId) {
+            const repo = githubRepositories.find(
+                item => item.id === repositoryId
+            );
+
+            if (!repo) return;
+
+            selectedGithubRepositoryId = repo.id;
+            renderGithubRepositories();
+
+            githubSelectionName.textContent = repo.full_name;
+            githubSelectionDescription.textContent =
+                `${repo.private ? "Private" : "Public"} repository · ` +
+                `Default branch: ${repo.default_branch || "unknown"}` +
+                (repo.description ? ` · ${repo.description}` : "");
+
+            githubOpenLink.href = repo.html_url;
+            githubSelection.hidden = false;
+            githubTree.textContent = "Loading repository files...";
+            githubStatus.textContent = `Loading ${repo.full_name}...`;
+
+            try {
+                const [owner, name] = repo.full_name.split("/", 2);
+                const data = await loadGithubTree(owner, name);
+
+                if (selectedGithubRepositoryId !== repositoryId) {
+                    return;
+                }
+
+                renderGithubTree(data.entries || []);
+                githubStatus.textContent =
+                    `${data.count} entries · Branch: ${data.branch}` +
+                    (data.truncated
+                        ? " · Tree is incomplete (GitHub limit)."
+                        : "");
+            } catch (error) {
+                if (selectedGithubRepositoryId !== repositoryId) {
+                    return;
+                }
+
+                githubTree.textContent = `Error: ${error.message}`;
+                githubStatus.textContent = "Could not load repository files.";
+            }
+        }
+
+        async function loadGithubRepositories() {
+            githubRefreshButton.disabled = true;
+            githubRepoCount.textContent = "Loading…";
+            githubStatus.textContent = "Loading repositories from GitHub…";
+
+            try {
+                const response = await fetch("/api/github/repos", {
+                    credentials: "same-origin"
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 401 || response.status === 403) {
+                    if (await handleUnauthorized(response)) return;
+                }
+
+                if (!response.ok) {
+                    githubRepositories = [];
+                    githubRepoCount.textContent = "Not connected";
+                    githubRepoList.replaceChildren();
+                    const message = document.createElement("div");
+                    message.className = "empty-state";
+                    message.textContent = data.detail || "Could not load GitHub repositories.";
+                    githubRepoList.appendChild(message);
+                    githubSelection.hidden = true;
+                    githubStatus.textContent = "Connect or reconnect GitHub, then refresh.";
+                    return;
+                }
+
+                githubRepositories = Array.isArray(data.repositories) ? data.repositories : [];
+                githubRepoCount.textContent =
+                    `${githubRepositories.length} repositor${githubRepositories.length === 1 ? "y" : "ies"}`;
+                githubStatus.textContent = "GitHub repositories loaded.";
+                renderGithubRepositories();
+
+                if (selectedGithubRepositoryId !== null) {
+                    if (githubRepositories.some(repo => repo.id === selectedGithubRepositoryId)) {
+                        selectGithubRepository(selectedGithubRepositoryId);
+                    } else {
+                        selectedGithubRepositoryId = null;
+                        githubSelection.hidden = true;
+                    }
+                }
+            } catch (error) {
+                githubRepoCount.textContent = "Unavailable";
+                githubStatus.textContent = `Could not load GitHub repositories: ${error.message}`;
+            } finally {
+                githubRefreshButton.disabled = false;
+            }
+        }
+
+        const githubPickerButton = document.getElementById("github-picker-button");
+        const githubDialog = document.getElementById("github-dialog");
+        const githubDialogClose = document.getElementById("github-dialog-close");
+        const githubRepoSearch = document.getElementById("github-repo-search");
+        const githubDialogStatus = document.getElementById("github-dialog-status");
+        const githubDialogList = document.getElementById("github-dialog-list");
+        const githubDialogSentinel = document.getElementById("github-dialog-sentinel");
+        const githubSelectedRepoLabel = document.getElementById("github-selected-repo");
+
+        let pickerRepositories = [];
+        let pickerPage = 1;
+        let pickerHasMore = true;
+        let pickerLoading = false;
+        let pickerSearch = "";
+        let selectedGithubRepo = null;
+
+        const PICKER_PAGE_SIZE = 20;
+
+        githubPickerButton.addEventListener("click", () => {
+            if (!githubDialog.open) {
+                githubDialog.showModal();
+
+                if (pickerRepositories.length === 0) {
+                    resetGithubPicker();
+                    loadMoreGithubRepositories();
+                }
+            }
+        });
+
+        githubDialogClose.addEventListener("click", () => {
+            githubDialog.close();
+        });
+
+        githubDialog.addEventListener("click", event => {
+            if (event.target === githubDialog) {
+                githubDialog.close();
+            }
+        });
+
+        function resetGithubPicker() {
+            pickerRepositories = [];
+            pickerPage = 1;
+            pickerHasMore = true;
+            pickerLoading = false;
+            pickerSearch = "";
+            githubRepoSearch.value = "";
+            githubDialogList.replaceChildren();
+            githubDialogStatus.textContent = "Loading repositories...";
+        }
+
+        async function loadMoreGithubRepositories() {
+            if (pickerLoading || !pickerHasMore) return;
+
+            pickerLoading = true;
+            githubDialogStatus.textContent = `Loading page ${pickerPage}...`;
+
+            try {
+                const params = new URLSearchParams({
+                    page: String(pickerPage),
+                    per_page: String(PICKER_PAGE_SIZE)
+                });
+
+                const response = await fetch(
+                    `/api/github/repos?${params.toString()}`,
+                    { credentials: "same-origin" }
+                );
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        if (await handleUnauthorized(response)) return;
+                    }
+
+                    throw new Error(
+                        data.detail || "Could not load GitHub repositories."
+                    );
+                }
+
+                const batch = Array.isArray(data.repositories)
+                    ? data.repositories
+                    : [];
+
+                pickerRepositories.push(...batch);
+                pickerPage += 1;
+                pickerHasMore = batch.length === PICKER_PAGE_SIZE;
+
+                renderGithubPickerRepositories();
+
+                githubDialogStatus.textContent = pickerHasMore
+                    ? `${pickerRepositories.length} repositories loaded. Scroll down for more.`
+                    : `${pickerRepositories.length} repositories loaded.`;
+            } catch (error) {
+                githubDialogStatus.textContent = error.message;
+            } finally {
+                pickerLoading = false;
+                githubDialogSentinel.textContent = pickerHasMore
+                    ? "Scroll for more repositories"
+                    : "You've reached the end.";
+            }
+        }
+
+        function renderGithubPickerRepositories() {
+            githubDialogList.replaceChildren();
+
+            const query = pickerSearch.trim().toLowerCase();
+
+            const filtered = pickerRepositories.filter(repo =>
+                repo.full_name.toLowerCase().includes(query)
+            );
+
+            for (const repo of filtered) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "github-dialog-item";
+
+                const name = document.createElement("span");
+                name.textContent =
+                    `${selectedGithubRepo?.id === repo.id ? "✓ " : ""}${repo.full_name}`;
+
+                const meta = document.createElement("small");
+                meta.textContent =
+                    `${repo.private ? "Private" : "Public"} · ` +
+                    `Default branch: ${repo.default_branch || "unknown"}`;
+
+                button.append(name, meta);
+                button.addEventListener("click", () => selectGithubRepo(repo));
+
+                githubDialogList.appendChild(button);
+            }
+
+            if (filtered.length === 0 && pickerRepositories.length > 0) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "No loaded repositories match your search.";
+                githubDialogList.appendChild(empty);
+            }
+
+            if (pickerRepositories.length === 0 && !pickerLoading) {
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "No repositories found.";
+                githubDialogList.appendChild(empty);
+            }
+
+            githubDialogSentinel.textContent = pickerHasMore
+                ? (pickerLoading
+                    ? "Loading more..."
+                    : "Scroll for more repositories")
+                : "You've reached the end.";
+        }
+
+        function selectGithubRepo(repo) {
+            selectedGithubRepo = repo;
+            updatePublishDestination();
+
+            githubSelectedRepoLabel.textContent =
+                `${repo.full_name} · ${repo.default_branch || "default branch"}`;
+
+            githubPickerButton.textContent = "Change GitHub Repository";
+            githubDialogStatus.textContent = `Selected ${repo.full_name}`;
+
+            renderGithubPickerRepositories();
+            githubDialog.close();
+        }
+
+        githubRepoSearch.addEventListener("input", () => {
+            pickerSearch = githubRepoSearch.value;
+            renderGithubPickerRepositories();
+        });
+
+        githubDialogList.addEventListener("scroll", () => {
+            const remaining =
+                githubDialogList.scrollHeight -
+                githubDialogList.scrollTop -
+                githubDialogList.clientHeight;
+
+            if (remaining < 60) {
+                loadMoreGithubRepositories();
+            }
+        });
+
+        async function clearWorkspace() {
+            const response = await fetch("/api/workspace/clear", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+
+            if (await handleUnauthorized(response)) {
+                throw new Error("Your session has expired. Please log in.");
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "Unable to clear the workspace."
+                );
+            }
+
+            activeFilePath = null;
+            await loadFiles();
+        }
+
+        function parseSSEEvent(eventText) {
+            let eventName = "message";
+            const dataLines = [];
+
+            for (const line of eventText.split(/\r?\n/)) {
+                if (line.startsWith("event:")) {
+                    eventName = line.slice(6).trim();
+                } else if (line.startsWith("data:")) {
+                    dataLines.push(line.slice(5).trimStart());
+                }
+            }
+
+            if (dataLines.length === 0) {
+                return null;
+            }
+
+            const rawData = dataLines.join("\n");
+
+            try {
+                return {
+                    event: eventName,
+                    data: JSON.parse(rawData)
+                };
+            } catch {
+                return {
+                    event: eventName,
+                    data: rawData
+                };
+            }
+        }
+
+        async function writeFinalAnswer(answer) {
+            finalAnswer.textContent = "";
+            finalAnswer.classList.add("is-writing");
+
+            try {
+                const parts = answer.match(/\s+|[^\s]+/g) || [];
+
+                for (const part of parts) {
+                    finalAnswer.textContent += part;
+
+                    if (!/^\s+$/.test(part)) {
+                        await new Promise(resolve => setTimeout(resolve, 28));
+                    }
+                }
+            } finally {
+                finalAnswer.classList.remove("is-writing");
+            }
+        }
+
+        function generateProjectTitle(task) {
+            let title = task
+                .replace(/\s+/g, " ")
+                .trim()
+                .replace(/[.!?]+$/, "");
+
+            title = title.replace(
+                /^(please\s+)?(can you|could you|i want you to|help me)\s+/i,
+                ""
+            );
+
+            title = title.replace(
+                /^(build|create|develop|make|implement|design|write|generate|add|update|fix|refactor|set up)\s+(me\s+)?/i,
+                ""
+            );
+
+            title = title.replace(/^(an?|the)\s+/i, "").trim();
+
+            if (!title) {
+                return "Untitled Project";
+            }
+
+            title = title.charAt(0).toUpperCase() + title.slice(1);
+
+            if (title.length > 55) {
+                title = `${title.slice(0, 52).trimEnd()}...`;
+            }
+
+            return title;
+        }
+
+        async function renameActiveProjectFromTask(task) {
+            if (!activeProjectId || !activeChatId || !activeProjectNeedsTitle) {
+                return;
+            }
+
+            const generatedTitle = generateProjectTitle(task);
+
+            if (!generatedTitle || generatedTitle === "Untitled Project") {
+                return;
+            }
+
+            try {
+                await apiRequest(`/api/chats/${encodeURIComponent(activeChatId)}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ title: generatedTitle })
+                });
+
+                activeProjectNeedsTitle = false;
+                addActivity(`Project named "${generatedTitle}".`, "success");
+                await loadChats();
+            } catch (error) {
+                addActivity(
+                    `Task completed, but the project title could not be saved: ${error.message}`,
+                    "error"
+                );
+            }
+        }
+
+        async function handleEvent(eventText) {
+            const parsed = parseSSEEvent(eventText);
+
+            if (!parsed) {
+                return;
+            }
+
+            const data = parsed.data;
+            const eventType =
+                parsed.event !== "message"
+                    ? parsed.event
+                    : data && typeof data === "object" && data.type
+                        ? data.type
+                        : "message";
+
+            if (
+                eventType === "preview" ||
+                (data && typeof data === "object" && data.type === "preview")
+            ) {
+                if (data && typeof data === "object" && data.url) {
+                    try {
+                        showPreview(data.url, data.port);
+                        localStorage.setItem(
+                            previewStorageKey,
+                            JSON.stringify({
+                                url: previewLink.href,
+                                port: data.port
+                            })
+                        );
+                    } catch (error) {
+                        addActivity(
+                            `Could not save the preview link: ${error.message}`,
+                            "error"
+                        );
+                    }
+                }
+
+                return;
+            }
+
+            if (eventType === "activity") {
+                const message =
+                    typeof data === "string"
+                        ? data
+                        : data.message || data.activity || JSON.stringify(data);
+
+                addActivity(message);
+                setStatus(message);
+            } else if (eventType === "result") {
+                const answer =
+                    typeof data === "string"
+                        ? data
+                        : data.answer || data.result || data.message || "";
+
+                await writeFinalAnswer(answer);
+                addActivity("Task completed.", "success");
+                setStatus("Task completed.");
+
+                if (activeProjectNeedsTitle && taskInput.value.trim()) {
+                    await renameActiveProjectFromTask(currentTask);
+                }
+
+                await loadFiles();
+            } else if (eventType === "error") {
+                const message =
+                    typeof data === "string"
+                        ? data
+                        : data.message || data.detail || JSON.stringify(data);
+
+                addActivity(message, "error");
+                finalAnswer.textContent = message;
+                setStatus("Task failed.", true);
+            } else if (eventType === "message") {
+                const message =
+                    typeof data === "string"
+                        ? data
+                        : data.message || JSON.stringify(data);
+
+                addActivity(message);
+            }
+        }
+
+        taskForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            if (taskRunning) {
+                return;
+            }
+
+            const task = taskInput.value;
+            currentTask = task.trim();
+
+            if (!currentTask) {
+                setStatus("Please enter a task first.", true);
+                return;
+            }
+
+            taskRunning = true;
+            runButton.disabled = true;
+            taskInput.disabled = true;
+
+            activityLog.replaceChildren();
+            finalAnswer.textContent = "Working on your task...";
+            previewContainer.hidden = true;
+            setStatus("Preparing project workspace...");
+
+            try {
+                try {
+                    localStorage.removeItem(previewStorageKey);
+                } catch (error) {
+                    addActivity(
+                        `Could not clear the previous preview link: ${error.message}`,
+                        "error"
+                    );
+                }
+
+                addActivity(
+                    "Using the existing workspace; previous project files are preserved."
+                );
+                setStatus("Connecting to Entropy agent...");
+
+                const response = await fetch("/task/stream", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        task,
+                        project_id: activeProjectId,
+                        effort: effortLabels[
+                            Number(effortInput.value)
+                        ].toLowerCase(),
+                        coding_level: codingLevelLabels[
+                            Number(codingLevelInput.value)
+                        ].toLowerCase(),
+                        github_repository: selectedGithubRepo
+                            ? {
+                                full_name: selectedGithubRepo.full_name,
+                                default_branch:
+                                    selectedGithubRepo.default_branch
+                            }
+                            : null
+                    })
+                });
+
+                if (await handleUnauthorized(response)) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    let message = `Task request failed (${response.status}).`;
+
+                    try {
+                        const errorData = await response.json();
+                        message = errorData.detail || message;
+                    } catch {
+                        // Keep the default error message.
+                    }
+
+                    throw new Error(message);
+                }
+
+                if (!response.body) {
+                    throw new Error("The server did not provide a response stream.");
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                let buffer = "";
+
+                while (true) {
+                    const { value, done } = await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const events = buffer.split(/\r?\n\r?\n/);
+                    buffer = events.pop() || "";
+
+                    for (const eventText of events) {
+                        await handleEvent(eventText);
+                    }
+                }
+
+                buffer += decoder.decode();
+
+                if (buffer.trim()) {
+                    await handleEvent(buffer);
+                }
+
+                setStatus("Agent stream ended.");
+                await loadFiles();
+            } catch (error) {
+                addActivity(error.message, "error");
+                finalAnswer.textContent = error.message;
+                setStatus("Something went wrong.", true);
+            } finally {
+                taskRunning = false;
+                runButton.disabled = false;
+                taskInput.disabled = false;
+
+                await loadFiles();
+            }
+        });
+
+        const publishPreviewButton = document.getElementById("publish-preview-button");
+        const publishReviewStatus = document.getElementById("publish-review-status");
+        const publishReviewFiles = document.getElementById("publish-review-files");
+        const publishConfirmation = document.getElementById("publish-confirmation");
+        const publishCommitMessage = document.getElementById("publish-commit-message");
+        const publishConfirmCheckbox = document.getElementById("publish-confirm-checkbox");
+        const publishConfirmButton = document.getElementById("publish-confirm-button");
+        const publishDestination = document.getElementById("publish-destination");
+
+        function resetPublishReviewState() {
+            publishReviewStatus.textContent = "No review generated yet.";
+            publishReviewFiles.innerHTML = "";
+            publishConfirmation.hidden = true;
+            publishConfirmCheckbox.checked = false;
+            publishConfirmButton.disabled = true;
+        }
+
+        function updatePublishDestination() {
+            if (!selectedGithubRepo) {
+                publishDestination.textContent = "Select a GitHub repository above to get started.";
+                resetPublishReviewState();
+                return;
+            }
+
+            publishDestination.textContent =
+                `Reviewing changes for ${selectedGithubRepo.full_name} on ${selectedGithubRepo.default_branch || "default branch"}.`;
+            publishReviewStatus.textContent = "Ready to generate a review.";
+        }
+
+        async function generatePublishReview() {
+            if (!selectedGithubRepo) {
+                publishReviewStatus.textContent = "Please select a GitHub repository first.";
+                return;
+            }
+
+            if (!activeProjectId) {
+                publishReviewStatus.textContent = "Please open or create a project first.";
+                return;
+            }
+
+            publishPreviewButton.disabled = true;
+            publishReviewStatus.textContent = "Generating the review snapshot...";
+            publishReviewFiles.innerHTML = "";
+            publishConfirmation.hidden = true;
+            publishConfirmCheckbox.checked = false;
+            publishConfirmButton.disabled = true;
+
+            try {
+                const response = await fetch("/api/github/publish/preview", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        project_id: activeProjectId,
+                        repository: selectedGithubRepo.full_name,
+                        branch: selectedGithubRepo.default_branch || "main"
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Could not generate the GitHub review.");
+                }
+
+                const reviewId = data.review_id;
+                const changes = Array.isArray(data.changes) ? data.changes : [];
+                const repo = data.repository || selectedGithubRepo.full_name;
+                const branch = data.branch || selectedGithubRepo.default_branch || "main";
+
+                window.currentPublishReviewId = reviewId || null;
+
+                if (!reviewId || changes.length === 0) {
+                    publishReviewStatus.textContent =
+                        data.message || "No file changes are ready to publish.";
+                    return;
+                }
+
+                publishReviewStatus.textContent =
+                    `Review ready for ${repo} on ${branch}. ${changes.length} file${changes.length === 1 ? "" : "s"} identified.`;
+
+                publishReviewFiles.innerHTML = "";
+                for (const item of changes) {
+                    const wrapper = document.createElement("details");
+                    wrapper.className = "github-review-file";
+                    const summary = document.createElement("summary");
+                    summary.textContent = `${item.status === "added" ? "Added" : "Modified"}: ${item.path}`;
+                    const code = document.createElement("pre");
+                    code.textContent = item.content || "";
+                    wrapper.append(summary, code);
+                    publishReviewFiles.appendChild(wrapper);
+                }
+
+                publishConfirmation.hidden = false;
+                publishConfirmButton.disabled = true;
+                publishConfirmCheckbox.checked = false;
+            } catch (error) {
+                publishReviewStatus.textContent = error.message;
+                publishReviewFiles.innerHTML = "";
+                publishConfirmation.hidden = true;
+            } finally {
+                publishPreviewButton.disabled = false;
+            }
+        }
+
+        publishPreviewButton.addEventListener("click", generatePublishReview);
+
+        publishConfirmCheckbox.addEventListener("change", () => {
+            publishConfirmButton.disabled = !publishConfirmCheckbox.checked;
+        });
+
+        publishConfirmButton.addEventListener("click", async () => {
+            if (!selectedGithubRepo || !activeProjectId) {
+                publishReviewStatus.textContent = "Select a project and repository before publishing.";
+                return;
+            }
+
+            const reviewId = window.currentPublishReviewId;
+            if (!reviewId) {
+                publishReviewStatus.textContent = "Generate a review before confirming a publish.";
+                return;
+            }
+
+            if (!publishConfirmCheckbox.checked) {
+                publishReviewStatus.textContent = "Please confirm the review before publishing.";
+                return;
+            }
+
+            const message = (publishCommitMessage.value || "Publish changes from Entropy").trim();
+            if (!message) {
+                publishReviewStatus.textContent = "Please enter a commit message.";
+                return;
+            }
+
+            publishConfirmButton.disabled = true;
+            publishReviewStatus.textContent = "Publishing to GitHub...";
+
+            try {
+                const response = await fetch("/api/github/publish/confirm", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        review_id: reviewId,
+                        confirmed: true,
+                        commit_message: message
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "GitHub publishing failed.");
+                }
+
+                publishReviewStatus.textContent =
+                    `Published successfully to ${selectedGithubRepo.full_name} with commit ${data.commit_sha || ""}.`;
+                publishConfirmation.hidden = true;
+                publishConfirmCheckbox.checked = false;
+                publishConfirmButton.disabled = true;
+                window.currentPublishReviewId = null;
+            } catch (error) {
+                publishReviewStatus.textContent = error.message;
+                publishConfirmButton.disabled = false;
+            }
+        });
+
+        logoutButton.addEventListener("click", async () => {
+            if (taskRunning) {
+                window.alert(
+                    "Please wait for the current task to finish before logging out."
+                );
+                return;
+            }
+
+            logoutButton.disabled = true;
+
+            try {
+                const response = await fetch("/api/auth/logout", {
+                    method: "POST",
+                    credentials: "same-origin"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Logout failed. Please try again.");
+                }
+
+                window.location.assign("/login");
+            } catch (error) {
+                window.alert(error.message);
+                logoutButton.disabled = false;
+            }
+        });
+
+        window.currentPublishReviewId = null;
+
+        // Load the current workspace when the page opens.
+        loadChats();
+        loadFiles();
+    </script>
+</body>
+</html>
